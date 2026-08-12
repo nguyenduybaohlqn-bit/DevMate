@@ -1,0 +1,70 @@
+.label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.name {
+  font-size: 12px;
+  font-weight: 500;
+}
+.pct {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--cyan);
+}
+.track {
+  height: 4px;
+  background: var(--panel-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  background: var(--cyan);
+  border-radius: 2px;
+  transition: width var(--t3) var(--ease);
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+.step {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stepDone {
+  color: var(--text-muted);
+}
+.stepDone svg {
+  width: 8px;
+  height: 8px;
+  color: var(--green);
+}
+.stepCurrent {
+  color: var(--cyan);
+  border-color: rgba(53, 214, 255, 0.4);
+  background: var(--cyan-dim);
+  font-weight: 600;
+}

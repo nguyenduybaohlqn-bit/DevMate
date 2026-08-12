@@ -1,0 +1,61 @@
+.wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows var(--t3) var(--ease), opacity var(--t2) var(--ease);
+}
+.wrapShow {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.wrap > div {
+  overflow: hidden;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.card {
+  background: var(--panel-2);
+  border: 1px solid rgba(53, 214, 255, 0.25);
+  border-radius: 10px;
+  padding: 11px 12px;
+  margin-top: 2px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.taskLabel {
+  font-size: 12px;
+  font-weight: 500;
+}
+.eta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.gauge {
+  display: flex;
+  gap: 2px;
+  height: 5px;
+  transition: opacity var(--t1) var(--ease);
+}
+.gaugeHidden {
+  opacity: 0;
+}
+.tick {
+  flex: 1;
+  background: var(--panel-3);
+  border-radius: 1px;
+  transition: background var(--t1) var(--ease);
+}
+.tickOn {
+  background: var(--cyan);
+}

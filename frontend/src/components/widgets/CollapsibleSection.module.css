@@ -1,0 +1,54 @@
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.toggle:hover .label {
+  color: var(--text-muted);
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--text-dim);
+  transition: color var(--t1) var(--ease);
+}
+.right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.summary {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+}
+.chev {
+  width: 10px;
+  height: 10px;
+  color: var(--text-dim);
+  transition: transform var(--t2) var(--ease);
+  flex-shrink: 0;
+}
+.chevOpen {
+  transform: rotate(180deg);
+}
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t3) var(--ease);
+}
+.bodyOpen {
+  grid-template-rows: 1fr;
+}
+.body > div {
+  overflow: hidden;
+}

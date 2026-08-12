@@ -1,7 +1,7 @@
 from datetime import datetime
 from datetime import timezone
 from app.models.message import Message
-from app.models import Conversation
+from app.models.conversation import Conversation
 from sqlalchemy import desc
 
 def save_message(db, conversation_id, role, content):
@@ -45,3 +45,12 @@ def get_messages(db, conversation_id):
 
 def get_conversation(db, conversation_id):
     return db.query(Conversation).filter(Conversation.id == conversation_id).first()
+
+def update_conversation_title(db, conversation_id, new_title):
+    conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    if conversation:
+        conversation.title = new_title
+        conversation.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(conversation)
+    return conversation

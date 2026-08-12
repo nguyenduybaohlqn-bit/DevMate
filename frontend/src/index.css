@@ -1,0 +1,112 @@
+:root {
+  --void: #05070c;
+  --panel: #0a121c;
+  --panel-raised: #0f1826;
+  --panel-2: #0d1622;
+  --panel-3: #112132;
+  --cyan: #35d6ff;
+  --cyan-soft: rgba(53, 214, 255, 0.55);
+  --cyan-dim: rgba(53, 214, 255, 0.1);
+  --line: rgba(53, 214, 255, 0.16);
+  --line-bright: rgba(53, 214, 255, 0.5);
+  --grid-line: rgba(53, 214, 255, 0.045);
+  --navy: #0b4a6b;
+  --text: #e6f4ff;
+  --text-muted: #5c7a8c;
+  --text-dim: #3d5164;
+  --amber: #ffb020;
+  --green: #3ddc97;
+  --red: #ef5350;
+
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Ngôn ngữ chuyển động thống nhất — mọi transition trong UI dùng chung bộ này */
+  --ease: cubic-bezier(0.22, 0.9, 0.32, 1);
+  --t1: 120ms;
+  --t2: 190ms;
+  --t3: 280ms;
+
+  --sidebar-w: 280px;
+  --sidebar-w-collapsed: 76px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--navy);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--void), 0 0 0 4px var(--cyan-soft);
+  border-radius: 4px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------- Khung góc bấm (corner-bracket) — dấu ấn thị giác xuyên suốt app ---------- */
+.frame {
+  position: relative;
+}
+.frame::before,
+.frame::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.frame::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--cyan);
+  border-left: 2px solid var(--cyan);
+}
+.frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--cyan);
+  border-right: 2px solid var(--cyan);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

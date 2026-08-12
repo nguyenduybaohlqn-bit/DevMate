@@ -1,0 +1,63 @@
+.label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+.dotRunning {
+  background: var(--cyan);
+  box-shadow: 0 0 5px var(--cyan);
+  animation: breathe 1.2s ease-in-out infinite;
+}
+.dotBusy {
+  background: var(--amber);
+  box-shadow: 0 0 5px var(--amber);
+}
+.dotError {
+  background: var(--red);
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.info {
+  flex: 1;
+  min-width: 0;
+}
+.name {
+  font-size: 12px;
+  font-weight: 500;
+}
+.model {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+}
+.status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}

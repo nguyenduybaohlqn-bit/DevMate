@@ -1,0 +1,43 @@
+.label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--text-dim);
+  margin-bottom: 9px;
+}
+.card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.groupLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.chip {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--panel-3);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.divider {
+  height: 1px;
+  background: var(--line);
+}

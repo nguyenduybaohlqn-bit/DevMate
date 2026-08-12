@@ -1,0 +1,89 @@
+.core {
+  width: var(--core-size, 32px);
+  height: var(--core-size, 32px);
+  position: relative;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(53, 214, 255, 0.35));
+}
+.core svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.ringOuter {
+  stroke: var(--cyan);
+  stroke-dasharray: 5 7;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin 13s linear infinite;
+}
+.ringInner {
+  stroke: var(--navy);
+  stroke-dasharray: 3 4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spinRev 8s linear infinite;
+}
+.dot {
+  fill: var(--cyan);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.core[data-state="thinking"] .ringOuter {
+  animation-duration: 2.2s;
+}
+.core[data-state="thinking"] .ringInner {
+  animation-duration: 1s;
+  stroke: var(--cyan);
+}
+.core[data-state="thinking"] .dot {
+  animation: breathe 0.55s ease-in-out infinite;
+}
+.core[data-state="streaming"] .dot {
+  animation: pulseFast 0.5s ease-in-out infinite;
+}
+.core[data-state="streaming"] .ringOuter {
+  animation-duration: 4s;
+}
+
+/* Reactor trung tâm (VoiceStage) điều khiển bằng JS (rAF) — tắt hẳn
+   keyframe tĩnh để không xung đột với transform đặt trực tiếp mỗi frame. */
+.engine .ringOuter,
+.engine .ringInner,
+.engine .dot {
+  animation: none !important;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spinRev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+@keyframes pulseFast {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+}

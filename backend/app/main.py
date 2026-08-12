@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.api import chat, auth
+from app.models.user import User
+from app.models.conversation import Conversation
 
 app = FastAPI()
 

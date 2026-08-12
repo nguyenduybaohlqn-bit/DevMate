@@ -1,0 +1,137 @@
+.reactorLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  opacity: 0.5;
+  transform: scale(0.87);
+  transition: opacity var(--t2) var(--ease), transform var(--t2) var(--ease);
+  pointer-events: none;
+}
+.reactorLayer[data-mode="voice"] {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.reactorVisual {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.reactorVisual::before {
+  content: "";
+  position: absolute;
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(53, 214, 255, 0.3), transparent 72%);
+  filter: blur(4px);
+  opacity: var(--reactor-glow, 0.42);
+}
+
+.reactorSpokes {
+  position: absolute;
+  inset: 0;
+}
+.spoke {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 26px;
+}
+.spokeBar {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(var(--cyan), rgba(53, 214, 255, 0.1));
+  transform-origin: center bottom;
+  /* transform/opacity đặt trực tiếp mỗi khung hình bởi useReactorEngine */
+}
+
+.reactorWelcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 440px;
+  text-align: center;
+  padding: 0 16px;
+}
+.reactorWelcome h1 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+.reactorWelcome p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.voiceHint,
+.voiceCaption {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-align: center;
+}
+.voiceCaption {
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+.voiceExit {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(10, 18, 28, 0.75);
+  border: 1px solid var(--line-bright);
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  padding: 7px 12px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity var(--t2) var(--ease), transform var(--t2) var(--ease),
+    background var(--t1) var(--ease);
+}
+.voiceExit:hover {
+  background: rgba(53, 214, 255, 0.1);
+}
+.reactorLayer[data-mode="voice"] .voiceExit {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (max-width: 680px) {
+  .reactorVisual {
+    transform: scale(0.6);
+  }
+}
+@media (max-width: 420px) {
+  .reactorVisual {
+    transform: scale(0.44);
+  }
+  .voiceExit span {
+    display: none;
+  }
+}

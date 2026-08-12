@@ -1,0 +1,51 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: var(--panel-2);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+  transition: background var(--t2) var(--ease);
+}
+.row[data-state="idle"] .dot {
+  background: var(--green);
+  box-shadow: 0 0 5px var(--green);
+  animation: breathe 3.4s ease-in-out infinite;
+}
+.row[data-state="active"] .dot {
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+  animation: breathe 1.3s ease-in-out infinite;
+}
+.row[data-state="listening"] .dot {
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+  animation: breathe 1s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.text {
+  flex: 1;
+  min-width: 0;
+}
+.label {
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: opacity var(--t1) var(--ease);
+}
+.runtime {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}

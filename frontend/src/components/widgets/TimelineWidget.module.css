@@ -1,0 +1,39 @@
+.preview {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  padding-bottom: 2px;
+}
+.previewTime {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-right: 7px;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  padding-top: 8px;
+}
+.item {
+  display: flex;
+  gap: 9px;
+  padding: 5px 0;
+  font-size: 11.8px;
+  animation: itemIn var(--t2) var(--ease) both;
+}
+@keyframes itemIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.itemTime {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  width: 38px;
+  padding-top: 1px;
+}
+.itemText {
+  color: var(--text-muted);
+  line-height: 1.45;
+}

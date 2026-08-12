@@ -1,0 +1,73 @@
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: riseIn 0.28s ease both;
+}
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.msgUser {
+  justify-content: flex-end;
+}
+.avatar {
+  margin-top: 4px;
+}
+
+.bubble {
+  max-width: 72%;
+  padding: 12px 15px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  position: relative;
+  line-height: 1.6;
+  font-size: 13.5px;
+}
+.msgAssistant .bubble {
+  border-left: 2px solid var(--cyan);
+}
+.msgUser .bubble {
+  background: var(--panel-raised);
+  border-right: 2px solid var(--navy);
+  border-left: 1px solid var(--line);
+  max-width: 72%;
+}
+
+.bubbleText {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.bubbleTime {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--cyan);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .bubble {
+    max-width: 85%;
+  }
+}

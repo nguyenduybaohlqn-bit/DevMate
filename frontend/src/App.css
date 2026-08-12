@@ -1,0 +1,35 @@
+.app {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 900px 520px at 50% -6%, rgba(53, 214, 255, 0.09), transparent 60%);
+}
+.app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(rgba(53, 214, 255, 0.025) 50%, transparent 50%);
+  background-size: 100% 4px;
+  opacity: 0.4;
+  animation: scanDrift 9s linear infinite;
+}
+@keyframes scanDrift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 120px;
+  }
+}

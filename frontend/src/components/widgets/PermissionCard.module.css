@@ -1,0 +1,76 @@
+.card {
+  background: var(--panel-raised);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  border-radius: 14px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  animation: cardIn var(--t2) var(--ease) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.summary {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.detail {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--panel-2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-top: 8px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--line-bright);
+  background: var(--panel-2);
+  color: var(--text);
+  transition: background var(--t1) var(--ease);
+}
+.btn:hover {
+  background: var(--panel-3);
+}
+.btnPrimary {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #04202a;
+}
+.btnPrimary:hover {
+  filter: brightness(1.08);
+}
+.btnDeny {
+  color: var(--red);
+}
+.btnDeny:hover {
+  border-color: var(--red);
+}

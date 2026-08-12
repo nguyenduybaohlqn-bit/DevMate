@@ -1,90 +1,38 @@
-import os
+import asyncio
+import json
 import traceback
+import time
+from urllib.parse import quote
+
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
-from google import genai
-from google.genai import types
-from google.genai import errors
 
-from app.config import settings
 from app.database import SessionLocal
 from app.repositories import conversation_repository
-from urllib.parse import quote, unquote
 
-if not settings.GEMINI_API_KEY:
-    raise ValueError("LỖI: Chưa có GEMINI_API_KEY. Vui lòng kiểm tra lại file .env")
-
-os.environ["GEMINI_API_KEY"] = settings.GEMINI_API_KEY
-
-client = genai.Client()
-
-async def stream_generator(primary_model: str, fallback_model: str, contents, config=None):
-    FLUSH_CHARS = {".", "!", "?", "\n"}  # flush khi gặp dấu kết câu
-    BUFFER_SIZE = 80                      # hoặc flush khi buffer đủ lớn
-
-    try:
-        response_stream = client.models.generate_content_stream(
-            model=primary_model,
-            contents=contents,
-            config=config
-        )
-        buffer = ""
-        for chunk in response_stream:
-            if chunk.text:
-                buffer += chunk.text
-                # Flush khi gặp dấu kết câu hoặc buffer đủ lớn
-                if any(c in buffer for c in FLUSH_CHARS) or len(buffer) >= BUFFER_SIZE:
-                    yield buffer
-                    buffer = ""
-
-        if buffer:  # flush phần còn lại
-            yield buffer
-
-    except errors.ServerError as e:
-        if e.code == 503:
-            print(f"[WARNING] Model '{primary_model}' đang quá tải (503).")
-            print(f"[WARNING] Tự động chuyển sang model dự phòng: '{fallback_model}'...")
-            response_stream = client.models.generate_content_stream(
-                model=fallback_model,
-                contents=contents,
-                config=config
-            )
-            for chunk in response_stream:
-                if chunk.text:
-                    yield chunk.text
-        else:
-            raise
+from app.llm.factory import get_llm
+from app.llm.schemas import Message
+from .title_service import generate_conversation_title
 
 
-async def collect_full_response(primary_model: str, fallback_model: str, contents, config=None) -> str:
-    chunks = []
-    async for text in stream_generator(primary_model, fallback_model, contents, config):
-        chunks.append(text)
-    return "".join(chunks)
-
-
-def build_gemini_contents(history: list) -> list:
-    """Chuyển đổi lịch sử từ DB sang định dạng Gemini Content."""
-    contents = []
-    for msg in history:
-        role = "user" if msg.role == "user" else "model"
-        contents.append(
-            types.Content(
-                role=role,
-                parts=[types.Part(text=msg.content)]
-            )
-        )
-    return contents
+def build_messages(history: list) -> list[Message]:
+    """Chuyển lịch sử từ DB sang format trung gian, không phụ thuộc SDK của provider nào."""
+    return [
+        Message(role="user" if msg.role == "user" else "assistant", content=msg.content)
+        for msg in history
+    ]
 
 
 async def chat(user_id: str, message: str, conversation_id: int | None = None) -> StreamingResponse:
     db = SessionLocal()
+    llm = get_llm()
     try:
         print(f"[DEBUG] user_id={user_id}, conversation_id={conversation_id}")
-
+        title_task = None
         if conversation_id is None:
             print("[DEBUG] Tạo conversation mới...")
-            new_title = set_title_from_message(message)
+            title_task = asyncio.create_task(generate_conversation_title(llm, message))
+            new_title = "New Chat"
             conversation = conversation_repository.create_conversation(db, user_id, title=new_title)
             conversation_id = conversation.id
             conversation_title = conversation.title
@@ -94,73 +42,71 @@ async def chat(user_id: str, message: str, conversation_id: int | None = None) -
             conversation_title = conv.title if conv else ""
 
         print("[DEBUG] Lưu user message...")
-        conversation_repository.save_message(db, conversation_id=conversation_id, role="user", content=message)
+        conversation_repository.save_message(
+            db, conversation_id=conversation_id, role="user", content=message
+        )
 
         history = conversation_repository.get_messages(db, conversation_id)
-        contents = build_gemini_contents(history)
+        messages = build_messages(history)
 
         async def streaming_with_save():
+            print("[DEBUG] Bắt đầu stream response từ LLM...")
             try:
                 chunks = []
-                async for text in stream_generator(
-                    primary_model='gemini-2.5-flash',
-                    fallback_model='gemini-2.5-flash-lite',
-                    contents=contents
-                ):
+                async for text in llm.stream(messages):
                     chunks.append(text)
-                    yield text
-
+                    yield (
+                        json.dumps(
+                            {
+                                "type": "chunk",
+                                "content": text,
+                            },
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
                 full_text = "".join(chunks)
                 conversation_repository.save_message(
                     db,
                     conversation_id=conversation_id,
                     role="assistant",
-                    content=full_text
+                    content=full_text,
+                )
+                yield (json.dumps(
+                        {
+                            "type": "done",
+                            "conversationId": conversation_id,
+                            "title": conversation_title,
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+            except Exception as e:
+                yield (
+                    json.dumps(
+                        {
+                            "type": "error",
+                            "message": str(e),
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
                 )
             finally:
                 db.close()
-
-        response = StreamingResponse(streaming_with_save(), media_type="text/plain")
+        async def update_title_background():
+          title = await title_task
+          conversation_repository.update_conversation_title(db, conversation_id, title)
+        if title_task:
+          asyncio.create_task(update_title_background())
+        response = StreamingResponse(streaming_with_save(), media_type="application/x-ndjson")
         response.headers["X-Conversation-Id"] = str(conversation_id)
         response.headers["X-Conversation-Title"] = quote(conversation_title or "")
         response.headers["Access-Control-Expose-Headers"] = "X-Conversation-Id, X-Conversation-Title"
         return response
-
     except Exception as e:
         db.close()
         traceback.print_exc()
         print(f"[ERROR] {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-def set_title_from_message(message: str) -> str:
-    set_title_prompt = (
-        "Dựa trên nội dung tin nhắn sau, hãy tạo một tiêu đề ngắn gọn "
-        "(tốt nhất là khoảng 5 - 6 từ, tối đa 10 từ) phù hợp để đặt tên "
-        "cho cuộc trò chuyện này, không viết các kí tự đặc biệt nếu không cần thiết\n\n"
-    )
-
-    config = types.GenerateContentConfig(
-        system_instruction=set_title_prompt,
-        temperature=0.5
-    )
-
-    # Thử primary model trước
-    for model in ['gemini-2.5-flash-lite', 'gemini-2.5-flash']:
-        try:
-            print(f"[DEBUG] Gọi {model} tạo tiêu đề...")
-            response = client.models.generate_content(
-                model=model,
-                contents=message,
-                config=config
-            )
-            return response.text.strip()
-
-        except errors.ServerError as e:
-            if e.code == 503:
-                print(f"[WARNING] {model} quá tải (503), thử model tiếp theo...")
-                continue  # thử model kế tiếp trong list
-            raise  # lỗi khác thì throw luôn
-
-    # Cả 2 model đều 503 → dùng luôn tin nhắn đầu làm tiêu đề
-    print("[WARNING] Tất cả model đều quá tải, dùng message làm tiêu đề.")
-    return message[:50].strip()

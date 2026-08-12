@@ -1,0 +1,119 @@
+.attachWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.attachBtn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: color var(--t1) var(--ease), border-color var(--t1) var(--ease),
+    background var(--t1) var(--ease);
+}
+.attachBtn:hover {
+  color: var(--cyan);
+  border-color: var(--line-bright);
+  background: rgba(53, 214, 255, 0.06);
+}
+.attachBtn svg {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--t2) var(--ease);
+}
+.attachBtn.open {
+  color: var(--cyan);
+  border-color: var(--line-bright);
+  background: rgba(53, 214, 255, 0.08);
+}
+.attachBtn.open svg {
+  transform: rotate(45deg);
+}
+
+.attachMenu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  z-index: 5;
+  width: 218px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line-bright);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  transform-origin: bottom left;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  pointer-events: none;
+  transition: opacity var(--t2) var(--ease), transform var(--t2) var(--ease);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(53, 214, 255, 0.06);
+  backdrop-filter: blur(10px);
+}
+.attachMenu::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.75;
+}
+.attachMenu.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.attachOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--text);
+  width: 100%;
+  padding: 9px 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t1) var(--ease);
+}
+.attachOption:not(:last-child) {
+  border-bottom-color: var(--line);
+}
+.attachOption:hover {
+  background: rgba(53, 214, 255, 0.08);
+}
+.attachOptionIcon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid var(--line-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+}
+.attachOptionText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.attachOptionText b {
+  font-size: 12px;
+  font-weight: 500;
+}
+.attachOptionText small {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+}

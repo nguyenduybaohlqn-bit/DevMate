@@ -1,0 +1,50 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-top: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 2px;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  box-shadow: 0 0 4px var(--green);
+  transition: background var(--t1) var(--ease);
+}
+.dotChecking {
+  background: var(--cyan);
+  animation: breathe 0.8s ease-in-out infinite;
+}
+.dotBusy {
+  background: var(--amber);
+}
+.dotError,
+.dotDisconnected {
+  background: var(--red);
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.name {
+  font-size: 12px;
+  color: var(--text);
+  flex: 1;
+}
+.state {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  transition: opacity var(--t1) var(--ease);
+}
+.stateChecking {
+  color: var(--cyan);
+}

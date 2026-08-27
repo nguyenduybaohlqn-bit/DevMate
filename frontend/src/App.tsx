@@ -10,6 +10,9 @@ import { ChatArea } from "./components/ChatArea";
 import { NexusLivePanel } from "./components/NexusLivePanel";
 import { useEffect } from "react";
 import { fetchMessages } from "./services/conversationApi";
+import type { AppView } from "./types";
+import { ActivityBar } from "./components/ActivityBar";
+import { BlueprintView } from "./components/blueprint/BlueprintView";
 import "./App.css";
 
 export default function App() {
@@ -43,6 +46,7 @@ function MainShell({ onSignOut }: MainShellProps) {
   const connection = useConnectionStatus();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [view, setView] = useState<AppView>("chat");
   const username = getCurrentUser()?.username ?? "Bạn";
 
   // KHÔNG còn effect tạo session mặc định ở đây nữa.
@@ -60,34 +64,49 @@ function MainShell({ onSignOut }: MainShellProps) {
     );
   }
 
-  return (
-    <WorkspaceProvider>
-      <div className="app">
-        <Sidebar
-          sessions={sessions}
-          activeKey={activeKey}
-          onSelectSession={selectSession}
-          onNewSession={createSession}
-          brandCoreState={connection.coreState}
-          username={username}
-          onSignOut={onSignOut}
-          collapsed={collapsed}
-          onToggleCollapse={() => setCollapsed((v) => !v)}
-          mobileOpen={mobileOpen}
-          onCloseMobile={() => setMobileOpen(false)}
+ return (
+  <WorkspaceProvider>
+    <div className="app">
+      <ActivityBar
+        view={view}
+        onChangeView={setView}
+      />
+
+      {view === "blueprint" ? (
+        <BlueprintView
+          onAskAI={() => setView("chat")}
         />
-        <ChatSession
-          key={activeSession.key}
-          conversationId={activeSession.id}
-          onConversationCreated={renameActiveOnCreated}
-          sessionTitle={activeSession.title}
-          baseStatusText={connection.statusText}
-          onOpenMobileMenu={() => setMobileOpen(true)}
-        />
-        <NexusLivePanel />
-      </div>
-    </WorkspaceProvider>
-  );
+      ) : (
+        <>
+          <Sidebar
+            sessions={sessions}
+            activeKey={activeKey}
+            onSelectSession={selectSession}
+            onNewSession={createSession}
+            brandCoreState={connection.coreState}
+            username={username}
+            onSignOut={onSignOut}
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed((v) => !v)}
+            mobileOpen={mobileOpen}
+            onCloseMobile={() => setMobileOpen(false)}
+          />
+
+          <ChatSession
+            key={activeSession.key}
+            conversationId={activeSession.id}
+            onConversationCreated={renameActiveOnCreated}
+            sessionTitle={activeSession.title}
+            baseStatusText={connection.statusText}
+            onOpenMobileMenu={() => setMobileOpen(true)}
+          />
+
+          <NexusLivePanel />
+        </>
+      )}
+    </div>
+  </WorkspaceProvider>
+);
 }
 
 interface ChatSessionProps {

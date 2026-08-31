@@ -19,10 +19,18 @@ class ThinkingLevel(str, Enum):
     HIGH = "high"
 
 
+class RoleName(str, Enum):
+    ANALYST = "analyst"
+    CODER = "coder"
+    ARCHITECT = "architect"
+    REVIEWER = "reviewer"
+    RESEARCHER = "researcher"
+
+
 class AgentPlan(BaseModel):
-    role: str = Field(
+    role: RoleName = Field(
         ...,
-        description="Vai trò của agent trong plan, ví dụ: 'coder', 'reviewer', 'architect'.",
+        description="Vai trò của agent trong plan, chọn từ danh sách role cố định.",
     )
 
     model: ModelName = Field(

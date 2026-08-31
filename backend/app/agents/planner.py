@@ -2,7 +2,14 @@ import logging
 
 from app.llm.factory import get_qwen
 from app.llm.schemas import Message
-from app.agents.schemas import ExecutionPlan, Strategy, AgentPlan, ModelName, ThinkingLevel
+from app.agents.schemas import (
+    ExecutionPlan,
+    Strategy,
+    AgentPlan,
+    ModelName,
+    ThinkingLevel,
+    RoleName,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +43,41 @@ You ONLY create an execution plan.
 - Use gemini_pro for: system architecture design, tasks requiring multi-step
   reasoning, tasks affecting many parts of the system at once, or tasks
   where a mistake would be very costly to fix later.
+
+## Available agent roles
+Every agent in "agents" MUST have a role that is ONE of the 5 values below.
+Do not invent any other role:
+
+- analyst: explains, analyzes, derives algorithms, evaluates trade-offs
+  between approaches, and answers conceptual/theoretical technical
+  questions. Does NOT write or modify real code in the project.
+- coder: writes or modifies code, implements a concrete solution into the
+  codebase.
+- architect: designs system architecture, makes high-level technical
+  decisions (technology choices, schema design, module boundaries, data
+  flow).
+- reviewer: reviews another agent's output, finds errors, risks, or
+  improvements. ALWAYS used alongside at least one other role in
+  multi_agent (never used alone in single_agent, since there is nothing to
+  review).
+- researcher: gathers and synthesizes external information when the task
+  needs up-to-date data or documentation the model cannot reliably know on
+  its own. Usually paired with requires_web = true.
+
+## Role selection rules
+1. A request that explains/analyzes an algorithm or concept, or compares
+   approaches, WITHOUT requiring changes to real code in the project ->
+   analyst.
+2. A request to write new code, fix, or refactor code in the codebase ->
+   coder.
+3. A request to design or redesign system architecture, choose technology,
+   or make system-level design decisions -> architect (usually paired with
+   multi_agent + reviewer).
+4. A question that requires external or up-to-date information (library
+   versions, news, external documentation) -> researcher.
+5. reviewer only appears in multi_agent, placed after the role that
+   produced the content to be checked (architect or coder); never used on
+   its own.
 
 ## Temperature selection rules (0.0 - 1.0)
 - 0.0 - 0.3: tasks requiring high precision (code, logic, configuration).
@@ -105,17 +147,31 @@ Plan:
   "requires_web": true
 }
 
+Example 4:
+Intent: analyze
+User request: "Explain the dynamic programming algorithm for the knapsack
+problem"
+Plan:
+{
+  "strategy": "single_agent",
+  "agents": [
+    {"role": "analyst", "model": "gemini_fast", "temperature": 0.4, "thinking_level": "medium"}
+  ],
+  "requires_context": false,
+  "requires_codebase": false,
+  "requires_web": false
+}
+
 ## Important
 Return ONLY the ExecutionPlan structure. Do not add any explanation or any
 text beyond the requested structure.
 """
 
-
 DEFAULT_FALLBACK_PLAN = ExecutionPlan(
     strategy=Strategy.SINGLE_AGENT,
     agents=[
         AgentPlan(
-            role="default",
+            role=RoleName.CODER,
             model=ModelName.GEMINI_FAST,
             temperature=0.2,
             thinking_level=ThinkingLevel.MEDIUM,

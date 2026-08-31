@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
+from httpx import stream
 
 from app.database import SessionLocal
 from app.repositories import conversation_repository
@@ -205,48 +206,40 @@ async def chat(
                         "[DEBUG] Streaming trực tiếp từ Gemini Fast..."
                     )
 
-                    async for text in response_llm.stream(
-                        messages
-                    ):
-                        chunks.append(text)
-
-                        yield (
-                            json.dumps(
-                                {
-                                    "type": "chunk",
-                                    "content": text,
-                                },
-                                ensure_ascii=False,
-                            )
-                            + "\n"
-                        )
-
+                    stream = response_llm.stream(messages)
                 # --------------------------------------------------
-                # CODE
+                # ELSE
                 # --------------------------------------------------
 
-                elif intent_result.intent == Intent.CODE:
+                else:
 
                     print(
                         "[DEBUG] Streaming qua Nexus Executor..."
                     )
 
-                    async for text in nexus_executor.stream(
-                        plan=execution_plan,
-                        messages=messages,
-                    ):
-                        chunks.append(text)
+                    stream = nexus_executor.stream(
+                plan=execution_plan,
+                messages=messages,
+            )
 
-                        yield (
-                            json.dumps(
-                                {
-                                    "type": "chunk",
-                                    "content": text,
-                                },
-                                ensure_ascii=False,
-                            )
-                            + "\n"
-                        )
+                # --------------------------------------------------
+                # COMMON STREAM
+                # --------------------------------------------------
+
+                async for text in stream:
+
+                    chunks.append(text)
+
+                    yield (
+                json.dumps(
+                    {
+                        "type": "chunk",
+                        "content": text,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
 
                 # --------------------------------------------------
                 # SAVE ASSISTANT RESPONSE

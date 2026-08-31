@@ -1,7 +1,11 @@
-from typing import AsyncGenerator, List, Optional
+from pyexpat.errors import messages
+from typing import AsyncGenerator, List, Optional, Type, TypeVar
 
+import httpx
 from openai import APIStatusError, AsyncOpenAI
+from pydantic import BaseModel
 
+T = TypeVar("T", bound=BaseModel)
 from app.config import settings
 
 from .base import BaseLLM
@@ -48,6 +52,7 @@ class QwenLLM(BaseLLM):
 
         base_url = getattr(settings, "OLLAMA_BASE_URL", None) or self.DEFAULT_BASE_URL
         self._client = AsyncOpenAI(api_key=settings.OLLAMA_API_KEY, base_url=base_url)
+        self._native_base_url = base_url[: -len("/v1")] if base_url.endswith("/v1") else base_url
         self.primary_model = primary_model
         self.fallback_model = fallback_model
         self.title_models = title_models or [primary_model, fallback_model]
@@ -159,3 +164,72 @@ class QwenLLM(BaseLLM):
 
         print("[WARNING] Tất cả model đều quá tải, dùng message làm tiêu đề.")
         return message[:50].strip()
+
+    async def generate_structured(
+    self,
+    messages: List[Message],
+    schema: Type[T],
+    config: Optional[LLMConfig] = None,
+) -> T:
+
+        system_instruction = config.system_instruction if config else None
+        schema_json = schema.model_json_schema()
+
+    # Nhắc lại rõ ràng các field bắt buộc — model nhỏ dễ bịa cấu trúc nếu không nhấn mạnh
+        required_fields = schema_json.get("required", [])
+        reinforcement = (
+        f"\n\nQUAN TRỌNG: Trả lời CHỈ bằng một object JSON DUY NHẤT ở cấp cao nhất, "
+        f"với đúng các field bắt buộc: {required_fields}. "
+        f"KHÔNG bọc trong bất kỳ key nào khác (ví dụ không được trả về "
+        f'{{"execution_plan": {{...}}}}), không thêm giải thích, không thêm text ngoài JSON.'
+    )
+        full_system = (system_instruction or "") + reinforcement
+
+        chat_messages = self._to_messages(messages, full_system)
+
+        payload = {
+        "model": self.primary_model,
+        "messages": chat_messages,
+        "stream": False,
+        "format": schema_json,
+        "think": False,  # tắt chế độ suy luận của qwen3 để nó không lẫn <think> vào JSON
+        "options": {
+            "temperature": (
+                config.temperature
+                if config and config.temperature is not None
+                else 0.0
+            )
+        },
+    }
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+            f"{self._native_base_url}/api/chat",
+            json=payload,
+        )
+            response.raise_for_status()
+            data = response.json()
+
+        content = data["message"]["content"]
+
+        print("[DEBUG] Qwen structured raw output:")
+        print(content)
+
+        try:
+         return schema.model_validate_json(content)
+        except Exception as first_error:
+        # Model nhỏ đôi khi bọc thừa 1 lớp key, ví dụ {"execution_plan": {...}}
+            try:
+                import json
+                parsed = json.loads(content)
+                if isinstance(parsed, dict) and len(parsed) == 1:
+                    inner = next(iter(parsed.values()))
+                    if isinstance(inner, dict):
+                        print("[WARNING] Output bị bọc thừa 1 lớp, đang thử unwrap...")
+                        return schema.model_validate(inner)
+            except Exception:
+                 pass
+
+            print("[ERROR] Structured output does not match schema:")
+            print(content)
+            raise first_error

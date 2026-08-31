@@ -14,3 +14,4 @@ class LLMConfig:
     """Config trung gian cho một lần gọi model."""
     temperature: Optional[float] = None
     system_instruction: Optional[str] = None
+    thinking_level: Optional[str] = None 

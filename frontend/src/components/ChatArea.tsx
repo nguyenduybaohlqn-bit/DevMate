@@ -53,12 +53,21 @@ export function ChatArea({
 
   // Tự cuộn xuống cuối mỗi khi danh sách tin nhắn đổi (kể cả từng ký tự stream).
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
+  const el = scrollRef.current;
+  if (!el) return;
+
+  const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+  const isNearBottom = distanceFromBottom < 150;
+
+  // Luôn scroll khi vừa mount/đổi conversation (scrollTop = 0),
+  // hoặc khi user đang ở gần đáy.
+  if (el.scrollTop === 0 || isNearBottom) {
+    const raf = requestAnimationFrame(() => {
       el.scrollTop = el.scrollHeight;
     });
-  }, [messages]);
+    return () => cancelAnimationFrame(raf);
+  }
+}, [messages]);
 
   const statusText = mode === "voice" ? VOICE_STATUS_TEXT[voiceState] : baseStatusText;
   const isEmpty = messages.length === 0;

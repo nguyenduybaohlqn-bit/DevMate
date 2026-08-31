@@ -1,5 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, List, Optional
+from typing import TypeVar, Type
+
+from pydantic import BaseModel
+
+T = TypeVar("T", bound=BaseModel)
 
 from app.llm.schemas import LLMConfig, Message
 
@@ -26,4 +31,12 @@ class BaseLLM(ABC):
     @abstractmethod
     async def generate_title(self, message: str) -> str:
         """Sinh tiêu đề ngắn gọn cho một conversation dựa trên tin nhắn đầu tiên."""
+        raise NotImplementedError
+
+    async def generate_structured(
+        self,
+        messages: list[Message],
+        schema: Type[T],
+        config: LLMConfig | None = None,
+    ) -> T:
         raise NotImplementedError

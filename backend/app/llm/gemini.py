@@ -1,14 +1,20 @@
+from http import client
+from importlib.resources import contents
 from logging import config
 import os
 from typing import AsyncGenerator, List, Optional, Type, TypeVar
+from xml.parsers.expat import model
+from certifi import contents
 
 from google import genai
 from google.genai import errors, types
+from openai import api_key
 from pydantic import BaseModel
 
 from app.config import settings
 
 from .base import BaseLLM
+from app.llm.gemini_key_manager import gemini_key_manager
 from .schemas import LLMConfig, Message
 
 
@@ -53,22 +59,35 @@ class GeminiLLM(BaseLLM):
         primary_model: str,
         fallback_model: Optional[str],
     ):
-        if not settings.GEMINI_API_KEY:
-            raise ValueError(
-                "LỖI: Chưa có GEMINI_API_KEY. "
-                "Vui lòng kiểm tra lại file .env"
-            )
-
-        os.environ["GEMINI_API_KEY"] = settings.GEMINI_API_KEY
-
-        self._client = genai.Client()
-
+        
         self.model = primary_model
         self.fallback_model = fallback_model
 
     # ==========================================================
     # Gemini SDK helpers
     # ==========================================================
+
+    def _create_client(self, api_key: str):
+                return genai.Client(api_key=api_key)
+    
+    async def _get_client(self, model: str):
+                candidates = await gemini_key_manager.get_available_keys(model)
+    
+                if not candidates:
+                    raise RuntimeError(
+                    f"No available Gemini API key for model: {model}"
+                )
+    
+                key_index, api_key = candidates[0]
+                print(
+    f"[Gemini] selected key #{key_index} "
+    f"for model={model}"
+)
+    
+                return (
+                    self._create_client(api_key),
+                    key_index,
+                )
 
     @staticmethod
     def _to_contents(
@@ -115,17 +134,26 @@ class GeminiLLM(BaseLLM):
     # Streaming
     # ==========================================================
 
-    def _call_stream(
-        self,
-        model: str,
-        contents,
-        gen_config,
-    ):
-        return self._client.models.generate_content_stream(
-            model=model,
-            contents=contents,
-            config=gen_config,
-        )
+    async def _call_stream(
+    self,
+    model: str,
+    contents,
+    gen_config,
+):
+        client, key_index = await self._get_client(model)
+
+        print(
+        f"[Gemini] Using key #{key_index} "
+        f"for model '{model}'"
+    )
+
+        response_stream = client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=gen_config,
+    )
+
+        return client, response_stream, key_index
 
     async def stream(
         self,
@@ -140,7 +168,7 @@ class GeminiLLM(BaseLLM):
 
         try:
 
-            response_stream = self._call_stream(
+            client, response_stream, key_index = await self._call_stream(
                 self.model,
                 contents,
                 gen_config,
@@ -174,11 +202,11 @@ class GeminiLLM(BaseLLM):
                 f"Fallback → '{self.fallback_model}'"
             )
 
-            response_stream = self._call_stream(
-                self.fallback_model,
-                contents,
-                gen_config,
-            )
+            client, response_stream, key_index = await self._call_stream(
+    self.fallback_model,
+    contents,
+    gen_config,
+)
 
             for chunk in response_stream:
 
@@ -226,11 +254,18 @@ class GeminiLLM(BaseLLM):
 
         try:
 
-            response = self._client.models.generate_content(
-                model=self.model,
-                contents=contents,
-                config=config,
-            )
+            client, key_index = await self._get_client(self.model)
+
+            print(
+    f"[Gemini] Structured output using key #{key_index} "
+    f"for model '{self.model}'"
+)
+
+            response = client.models.generate_content(
+    model=self.model,
+    contents=contents,
+    config=config,
+)
 
             return response_schema.model_validate_json(
                 response.text
@@ -246,15 +281,18 @@ class GeminiLLM(BaseLLM):
                 f"Structured fallback → '{self.fallback_model}'"
             )
 
-            response = self._client.models.generate_content(
-                model=self.fallback_model,
-                contents=contents,
-                config=config,
-            )
+            client, key_index = await self._get_client(self.fallback_model)
 
-            return response_schema.model_validate_json(
-                response.text
-            )
+            print(
+    f"[Gemini] Structured fallback using key #{key_index} "
+    f"for model '{self.fallback_model}'"
+)
+
+            response = client.models.generate_content(
+    model=self.fallback_model,
+    contents=contents,
+    config=config,
+)
 
     # ==========================================================
     # Title
@@ -279,12 +317,15 @@ class GeminiLLM(BaseLLM):
 
         try:
 
-            response = self._client.models.generate_content(
-                model=self.model,
-                contents=message,
-                config=config,
-            )
-
+            client, key_index = await self._get_client(self.model)
+            print(f"[Gemini] Title generation using key #{key_index} "
+                    f"for model '{self.model}'"
+                )
+            response = client.models.generate_content(
+    model=self.model,
+    contents=message,
+    config=config,
+)
             return response.text.strip()
 
         except errors.ServerError as e:
@@ -296,12 +337,16 @@ class GeminiLLM(BaseLLM):
                     f"Title fallback → {self.fallback_model}"
                 )
 
-                response = self._client.models.generate_content(
-                    model=self.fallback_model,
-                    contents=message,
-                    config=config,
+                client, key_index = await self._get_client(self.fallback_model)
+                print(f"[Gemini] Title fallback using key #{key_index} "
+                    f"for model '{self.fallback_model}'"
                 )
-
+                response = client.models.generate_content(
+    model=self.fallback_model,
+    contents=message,
+    config=config,
+)
                 return response.text.strip()
+        
 
             raise

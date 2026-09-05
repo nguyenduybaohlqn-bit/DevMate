@@ -134,32 +134,79 @@ class GeminiLLM(BaseLLM):
     # Streaming
     # ==========================================================
 
-    async def _call_stream(
+    async def _call_stream_with_key_retry(
     self,
     model: str,
     contents,
     gen_config,
 ):
-        client, key_index = await self._get_client(model)
+        candidates = await gemini_key_manager.get_available_keys(model)
 
-        print(
-        f"[Gemini] Using key #{key_index} "
-        f"for model '{model}'"
-    )
+        if not candidates:
+            raise RuntimeError(
+                f"No available Gemini API key for model: {model}"
+            )
 
-        response_stream = client.models.generate_content_stream(
-        model=model,
-        contents=contents,
-        config=gen_config,
-    )
+        last_error = None
 
-        return client, response_stream, key_index
+        for key_index, api_key in candidates:
+            client = self._create_client(api_key)
+            started = False
+
+            print(
+                f"[Gemini] Trying key #{key_index} "
+                f"for stream model '{model}'"
+            )
+
+            try:
+                response_stream = client.models.generate_content_stream(
+                    model=model,
+                    contents=contents,
+                    config=gen_config,
+                )
+
+                for chunk in response_stream:
+                    started = True
+                    yield chunk
+
+                await gemini_key_manager.mark_success(key_index, model)
+                return
+
+            except errors.ClientError as e:
+                last_error = e
+
+                if e.code != 429:
+                    raise
+
+                if started:
+                    print(
+                        f"[Gemini] Key #{key_index} bị 429 SAU KHI đã "
+                        f"stream một phần nội dung cho model '{model}'. "
+                        f"Không retry để tránh trùng lặp — raise thẳng."
+                    )
+                    raise
+
+                print(
+                    f"[Gemini] Key #{key_index} rate limited "
+                    f"TRƯỚC khi stream chunk nào cho model '{model}'"
+                )
+
+                await gemini_key_manager.mark_rate_limited(
+                    key_index=key_index,
+                    model=model,
+                    cooldown_seconds=60,
+                    error=str(e),
+                )
+
+        raise RuntimeError(
+            f"All Gemini API keys exhausted for streaming model: {model}"
+        ) from last_error
 
     async def stream(
-        self,
-        messages: List[Message],
-        config: Optional[LLMConfig] = None,
-    ) -> AsyncGenerator[str, None]:
+    self,
+    messages: List[Message],
+    config: Optional[LLMConfig] = None,
+) -> AsyncGenerator[str, None]:
 
         contents = self._to_contents(messages)
         gen_config = self._to_gen_config(config)
@@ -168,13 +215,11 @@ class GeminiLLM(BaseLLM):
 
         try:
 
-            client, response_stream, key_index = await self._call_stream(
+            async for chunk in self._call_stream_with_key_retry(
                 self.model,
                 contents,
                 gen_config,
-            )
-
-            for chunk in response_stream:
+            ):
 
                 if not chunk.text:
                     continue
@@ -202,16 +247,25 @@ class GeminiLLM(BaseLLM):
                 f"Fallback → '{self.fallback_model}'"
             )
 
-            client, response_stream, key_index = await self._call_stream(
-    self.fallback_model,
-    contents,
-    gen_config,
-)
+            fallback_buffer = StreamBuffer()
 
-            for chunk in response_stream:
-
-                if chunk.text:
-                    yield chunk.text
+            async for chunk in self._call_stream_with_key_retry(
+                self.fallback_model,
+                contents,
+                gen_config,
+            ):
+                if not chunk.text:
+                    continue
+                
+                piece = fallback_buffer.push(chunk.text)
+        
+                if piece:
+                    yield piece
+        
+            tail = fallback_buffer.flush()
+        
+            if tail:
+                yield tail
 
     # ==========================================================
     # Generate
@@ -261,10 +315,10 @@ class GeminiLLM(BaseLLM):
     f"for model '{self.model}'"
 )
 
-            response = client.models.generate_content(
+            response = await self._call_with_key_retry(
     model=self.model,
     contents=contents,
-    config=config,
+    gen_config=config,
 )
 
             return response_schema.model_validate_json(
@@ -288,11 +342,12 @@ class GeminiLLM(BaseLLM):
     f"for model '{self.fallback_model}'"
 )
 
-            response = client.models.generate_content(
+            response = await self._call_with_key_retry(
     model=self.fallback_model,
     contents=contents,
-    config=config,
+    gen_config=config,
 )
+            return response_schema.model_validate_json(response.text)
 
     # ==========================================================
     # Title
@@ -321,10 +376,10 @@ class GeminiLLM(BaseLLM):
             print(f"[Gemini] Title generation using key #{key_index} "
                     f"for model '{self.model}'"
                 )
-            response = client.models.generate_content(
+            response = await self._call_with_key_retry(
     model=self.model,
     contents=message,
-    config=config,
+    gen_config=config,
 )
             return response.text.strip()
 
@@ -341,12 +396,71 @@ class GeminiLLM(BaseLLM):
                 print(f"[Gemini] Title fallback using key #{key_index} "
                     f"for model '{self.fallback_model}'"
                 )
-                response = client.models.generate_content(
+                response = await self._call_with_key_retry(
     model=self.fallback_model,
     contents=message,
-    config=config,
+    gen_config=config,
 )
                 return response.text.strip()
         
 
             raise
+
+    async def _call_with_key_retry(
+    self,
+    model: str,
+    contents,
+    gen_config,
+):
+        candidates = await gemini_key_manager.get_available_keys(model)
+
+        if not candidates:
+            raise RuntimeError(
+                f"No available Gemini API key for model: {model}"
+            )
+
+        last_error = None
+
+        for key_index, api_key in candidates:
+            client = self._create_client(api_key)
+
+            print(
+            f"[Gemini] Trying key #{key_index} "
+            f"for model '{model}'"
+            )
+
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                    config=gen_config,
+                )
+
+                await gemini_key_manager.mark_success(
+                    key_index,
+                    model,
+                )
+
+                return response
+
+            except errors.ClientError as e:
+                last_error = e
+
+                if e.code != 429:
+                    raise
+
+            print(
+                f"[Gemini] Key #{key_index} rate limited "
+                f"for model '{model}'"
+            )
+
+            await gemini_key_manager.mark_rate_limited(
+                key_index=key_index,
+                model=model,
+                cooldown_seconds=60,
+                error=str(e),
+            )
+
+        raise RuntimeError(
+        f"All Gemini API keys exhausted for model: {model}"
+    ) from last_error

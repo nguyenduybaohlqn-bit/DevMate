@@ -144,3 +144,7 @@ export interface PermissionRequest {
   summary: string;
   detail?: string;
 }
+
+export type AppView = "chat" | "blueprint";
+
+export * from "./blueprint";

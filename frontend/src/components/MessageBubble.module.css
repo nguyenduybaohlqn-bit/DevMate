@@ -71,3 +71,121 @@
     max-width: 85%;
   }
 }
+/* Giữ xuống dòng thật của user, không bị trình duyệt collapse */
+.plainText {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* Nội dung markdown: giảm margin mặc định của các thẻ để không bị
+   "nhảy dòng" quá to trong 1 bubble chat, dễ đọc, không rối mắt */
+.bubbleText :global(p) {
+  margin: 0 0 8px;
+  line-height: 1.55;
+}
+.bubbleText :global(p:last-child) {
+  margin-bottom: 0;
+}
+.bubbleText :global(ul),
+.bubbleText :global(ol) {
+  margin: 4px 0 8px;
+  padding-left: 20px;
+  line-height: 1.5;
+}
+.bubbleText :global(h1),
+.bubbleText :global(h2),
+.bubbleText :global(h3) {
+  margin: 12px 0 6px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.bubbleText :global(h1) { font-size: 1.15em; }
+.bubbleText :global(h2) { font-size: 1.08em; }
+.bubbleText :global(h3) { font-size: 1.02em; }
+
+.bubbleText :global(blockquote) {
+  margin: 8px 0;
+  padding: 4px 12px;
+  border-left: 3px solid var(--border-color, #444);
+  color: var(--muted-text, #999);
+}
+
+.bubbleText :global(table) {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.92em;
+}
+.bubbleText :global(th),
+.bubbleText :global(td) {
+  border: 1px solid var(--border-color, #444);
+  padding: 4px 8px;
+}
+
+/* Inline code: khác hẳn văn bản thường, không lẫn với prose */
+.inlineCode {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.88em;
+  background: var(--code-inline-bg, rgba(255, 255, 255, 0.08));
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Code block: tách hẳn thành 1 khối riêng, có header, dễ nhận diện */
+.codeBlock {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #333);
+  background: var(--code-block-bg, #0d1117);
+}
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  background: var(--code-header-bg, #161b22);
+  font-size: 0.78em;
+  color: var(--muted-text, #999);
+}
+.copyBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.copyBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.codeBlock :global(pre) {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.86em;
+  line-height: 1.5;
+}
+
+.link {
+  color: var(--accent-color, #7aa2f7);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Con trỏ nhấp nháy khi đang stream — gắn vào phần tử cuối cùng
+   của nội dung (đoạn văn, code block, list...) thay vì 1 span cố định,
+   nên luôn "đi theo" đúng vị trí đang generate. */
+.streaming :global(> *:last-child)::after {
+  content: "▍";
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s step-start infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}

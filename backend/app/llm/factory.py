@@ -1,4 +1,3 @@
-import os
 from functools import lru_cache
 
 from .base import BaseLLM
@@ -6,20 +5,39 @@ from .gemini import GeminiLLM
 
 
 @lru_cache
-def get_llm() -> BaseLLM:
-    """Trả về instance LLM theo LLM_PROVIDER trong env (mặc định: gemini).
-    Dùng lru_cache để tái sử dụng client thay vì tạo mới mỗi request.
-    """
-    provider = os.getenv("LLM_PROVIDER", "gemini").lower()
+def get_intent_llm() -> GeminiLLM:
+    return GeminiLLM(
+        primary_model="gemini-3.5-flash-lite",
+        fallback_model="gemini-3.7-flash",
+    )
 
-    if provider == "gemini":
-        return GeminiLLM()
-    if provider == "ollama":
-        from .ollama import QwenLLM
-        return QwenLLM()
-    # Khi có Qwen, chỉ cần thêm 1 nhánh ở đây, không sửa gì ở ChatService:
-    # if provider == "qwen":
-    #     from .qwen import QwenLLM
-    #     return QwenLLM()
 
-    raise ValueError(f"LLM_PROVIDER không được hỗ trợ: '{provider}'")
+@lru_cache
+def get_fast_llm() -> GeminiLLM:
+    return GeminiLLM(
+        primary_model="gemini-3.7-flash",
+        fallback_model="gemini-3.5-flash",
+    )
+
+
+@lru_cache
+def get_reasoning_llm() -> GeminiLLM:
+    return GeminiLLM(
+        primary_model="gemini-3.1-pro-preview",
+        fallback_model="gemini-3.7-flash",
+    )
+
+
+@lru_cache
+def get_qwen() -> BaseLLM:
+    from .ollama import QwenLLM
+
+    return QwenLLM(
+        primary_model="qwen3:4b-instruct"
+    )
+
+
+MODEL_REGISTRY = {
+    "gemini_fast": get_fast_llm,
+    "gemini_pro": get_reasoning_llm,
+}

@@ -1,0 +1,61 @@
+.bar {
+  width: 56px;
+  flex-shrink: 0;
+  background: var(--void);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 6px;
+  position: relative;
+  z-index: 3;
+}
+.brand {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.spacer {
+  flex: 1;
+}
+.item {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r, 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--t1) var(--ease), color var(--t1) var(--ease);
+}
+.item:hover {
+  background: var(--panel-raised);
+  color: var(--text);
+}
+.itemActive {
+  color: var(--cyan);
+  background: var(--cyan-dim);
+}
+.itemActive::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 0 3px 3px 0;
+  background: var(--cyan);
+}
+.item svg {
+  width: 19px;
+  height: 19px;
+}

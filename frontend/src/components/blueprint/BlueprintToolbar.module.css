@@ -1,0 +1,125 @@
+.bar {
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  gap: 16px;
+}
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  color: var(--text);
+}
+.brand svg {
+  width: 15px;
+  height: 15px;
+  color: var(--cyan);
+}
+.projectPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-bright);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.projectPill b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.searchWrap {
+  flex: 1;
+  max-width: 420px;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+.search svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.search input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 12.5px;
+  min-width: 0;
+}
+.search input::placeholder {
+  color: var(--text-dim);
+}
+.search input:focus {
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-bright);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background var(--t1) var(--ease), color var(--t1) var(--ease), border-color var(--t1) var(--ease);
+}
+.btn:hover {
+  background: var(--panel-3);
+  color: var(--text);
+}
+.btn svg {
+  width: 13px;
+  height: 13px;
+}
+.btnPrimary {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #04202a;
+}
+.btnPrimary:hover {
+  filter: brightness(1.08);
+}
+.spinning {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

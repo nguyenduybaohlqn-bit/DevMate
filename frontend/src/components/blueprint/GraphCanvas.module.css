@@ -1,0 +1,188 @@
+.canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--void);
+  cursor: grab;
+  touch-action: none;
+}
+.canvas:active {
+  cursor: grabbing;
+}
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.edgesSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.edge {
+  stroke: var(--line-bright);
+  stroke-width: 1.5;
+  transition: stroke var(--t1) var(--ease), stroke-width var(--t1) var(--ease), opacity var(--t1) var(--ease);
+}
+.edgeAlt {
+  stroke-dasharray: 5 4;
+}
+.edgeDim {
+  opacity: 0.18;
+}
+.edgeHighlight {
+  stroke: var(--cyan);
+  stroke-width: 2.2;
+  opacity: 1;
+}
+
+.groupLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  opacity: 0.55;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 168px;
+  margin-left: -84px;
+  margin-top: -30px;
+  padding: 10px 12px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--r-lg, 10px);
+  cursor: grab;
+  user-select: none;
+  transition: opacity var(--t1) var(--ease), border-color var(--t1) var(--ease), box-shadow var(--t1) var(--ease);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.node:active {
+  cursor: grabbing;
+}
+.nodeDim {
+  opacity: 0.28;
+}
+.nodeSelected {
+  box-shadow: 0 0 0 2px var(--cyan-soft), 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.nodeTop {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.nodeIcon {
+  flex-shrink: 0;
+  display: flex;
+}
+.nodeKindTag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.nodeLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nodeMeta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.legend {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 1;
+  background: rgba(10, 18, 28, 0.7);
+  backdrop-filter: blur(6px);
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.legendDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.zoomControls {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1;
+}
+.zoomBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line-bright);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--t1) var(--ease), border-color var(--t1) var(--ease);
+}
+.zoomBtn:hover {
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+.zoomBtn svg {
+  width: 14px;
+  height: 14px;
+}
